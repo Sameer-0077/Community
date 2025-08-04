@@ -8,7 +8,7 @@ const isAuthenticated = async (req, res, next) => {
     if (!token) throw new Error("Not authorized");
 
     const decodeToken = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByID(decodeToken.userId).select("-password");
+    const user = await User.findById(decodeToken.userId).select("-password");
 
     if (!user) throw new Error("Invalid token");
 
