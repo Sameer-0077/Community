@@ -4,9 +4,9 @@ const generateToken = require("../utils/generateToken");
 
 const registerUser = async (req, res) => {
   try {
-    const { name, eamil, password, bio } = req.body;
+    const { name, email, password, bio } = req.body;
 
-    const isUserExist = await User.findOne({ eamil });
+    const isUserExist = await User.findOne({ email });
     if (isUserExist)
       return res.status(400).json({ error: "Email already in use" });
 
@@ -53,7 +53,7 @@ const loginUser = async (req, res) => {
 
 const logoutUser = (req, res) => {
   try {
-    res.clearCookie("jwt", {
+    res.clearCookie("token", {
       httpOnly: true,
       secure: false,
     });
