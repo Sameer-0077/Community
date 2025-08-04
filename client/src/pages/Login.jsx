@@ -1,13 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const Register = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    bio: "",
-  });
+const Login = () => {
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -15,26 +11,17 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Register submitted:", formData);
+    console.log("Login submitted:", formData);
     // Call backend API here
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start">
+    <div className="min-h-screen flex flex-col items-center justify-start ">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded shadow-md w-full max-w-3xl mt-40"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Sign Up</h2>
-
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          onChange={handleChange}
-          required
-          className="w-full p-3 mb-4 border rounded"
-        />
+        <h2 className="text-2xl font-bold text-center mb-6">Log In</h2>
 
         <input
           type="email"
@@ -51,7 +38,6 @@ const Register = () => {
           placeholder="Password"
           onChange={handleChange}
           required
-          minLength={6}
           className="w-full p-3 mb-6 border rounded"
         />
 
@@ -59,21 +45,21 @@ const Register = () => {
           type="submit"
           className="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700 transition"
         >
-          Create Account
+          Log In
         </button>
 
         <p className="mt-4 text-center text-sm">
-          Already have an account?{" "}
-          <Link
-            to="/login"
+          Don’t have an account?{" "}
+          <span
+            onClick={() => navigate("/signup")}
             className="text-green-600 hover:underline cursor-pointer"
           >
-            Log in
-          </Link>
+            Sign up
+          </span>
         </p>
       </form>
     </div>
   );
 };
 
-export default Register;
+export default Login;
