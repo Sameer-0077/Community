@@ -35,7 +35,7 @@ const loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     generateToken(res, user._id);
@@ -47,7 +47,7 @@ const loginUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ message: "Login failed. Please try again." });
+    res.status(500).json({ error: "Login failed. Please try again." });
   }
 };
 
@@ -61,7 +61,7 @@ const logoutUser = (req, res) => {
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout error:", error);
-    res.status(500).json({ message: "Logout failed. Please try again." });
+    res.status(500).json({ error: "Logout failed. Please try again." });
   }
 };
 
