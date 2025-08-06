@@ -1,22 +1,36 @@
 import { useState } from "react";
 import CreatePost from "../components/CreatePost";
 import PostCard from "../components/PostCard";
+import { useEffect } from "react";
 
 const Home = () => {
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      content: "Just joined this awesome platform!",
-      createdAt: new Date(),
-      author: { name: "Sameer" },
-    },
-    {
-      id: 2,
-      content: "Second post by the dev 👨‍💻",
-      createdAt: new Date(),
-      author: { name: "Pushpa" },
-    },
-  ]);
+  const [posts, setPosts] = useState([]);
+
+  const getAllPost = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/post/all-post", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      // console.log("Response : ", res);
+
+      const allPost = await res.json();
+      if (!res.ok) {
+        throw new Error("Error to getting all post");
+      } else {
+        // console.log("All post", allPost);
+        setPosts(allPost);
+      }
+    } catch (error) {
+      console.log("Error to getting all post:", error);
+    }
+  };
+
+  useEffect(() => {
+    // getCurrentUser();
+    getAllPost();
+  }, []);
 
   const handleNewPost = (content) => {
     const newPost = {
@@ -33,7 +47,7 @@ const Home = () => {
       <CreatePost onPostSubmit={handleNewPost} />
       <div className="space-y-4">
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard key={post._id} post={post} />
         ))}
       </div>
     </div>
