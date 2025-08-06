@@ -1,18 +1,39 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useUserStore from "../store/userStore";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const navigate = useNavigate();
+  const setUser = useUserStore((state) => state.setUser);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login submitted:", formData);
+    // console.log("Login submitted:", formData);
     // Call backend API here
+    try {
+      const res = await fetch("http://localhost:8000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
+
+      const user = await res.json();
+
+      if (!res.ok) return alert(user.error);
+
+      console.log(user);
+      setUser(user);
+
+      navigate("/");
+    } catch (error) {
+      console.log("Error:", error);
+    }
   };
 
   return (
