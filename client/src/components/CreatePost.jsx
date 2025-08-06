@@ -1,10 +1,14 @@
 import { useState } from "react";
-
+import useUserStore from "../store/userStore";
+import { useNavigate } from "react-router-dom";
 const CreatePost = ({ onPostSubmit }) => {
   const [content, setContent] = useState("");
+  const user = useUserStore((state) => state.user);
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!user) return navigate("/login");
     if (content.trim()) {
       onPostSubmit(content);
       setContent("");
