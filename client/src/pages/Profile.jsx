@@ -1,36 +1,51 @@
 import UserProfile from "../components/UserProfile";
 import PostCard from "../components/PostCard";
-
-const dummyUser = {
-  name: "Sameer Yadav",
-  email: "sameer@example.com",
-  bio: "Full Stack Developer and lifelong learner.",
-};
-
-const dummyPosts = [
-  {
-    id: 1,
-    content: "Excited to be part of this developer community!",
-    createdAt: new Date(),
-    author: { name: "Sameer Yadav" },
-  },
-  {
-    id: 2,
-    content: "Currently building a LinkedIn-like app!",
-    createdAt: new Date(),
-    author: { name: "Sameer Yadav" },
-  },
-];
+import useUserStore from "../store/userStore";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 const Profile = () => {
+  const [posts, setPosts] = useState([]);
+  const user = useUserStore((state) => state.user);
+  const navigate = useNavigate();
+
+  // console.log(user);
+
+  const userPost = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/post/user/${user._id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const allPost = await res.json();
+
+      if (!res.ok) throw new Error(allPost.error);
+
+      console.log("ALL post:", allPost);
+      setPosts(allPost);
+    } catch (error) {
+      console.log("Error:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return navigate("/login");
+    userPost();
+  }, []);
+
+  if (!user) return navigate("/login");
   return (
     <div className="space-y-6 min-h-screen ">
-      <UserProfile user={dummyUser} />
+      <UserProfile user={user} />
       <div>
         <h3 className="text-lg font-semibold mb-2 text-white">Posts</h3>
         <div className="space-y-4">
-          {dummyPosts.map((post) => (
-            <PostCard key={post.id} post={post} />
+          {posts.map((post) => (
+            <PostCard key={post._id} post={post} />
           ))}
         </div>
       </div>
