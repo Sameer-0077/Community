@@ -10,13 +10,14 @@ const CreatePost = ({ onPostSubmit }) => {
     e.preventDefault();
     if (!user) return navigate("/login");
     if (content.trim()) {
-      onPostSubmit(content);
+      const data = { content: content };
+      onPostSubmit(data);
       setContent("");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6">
+    <form onSubmit={handleSubmit} className="mb-6 mt-10">
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
