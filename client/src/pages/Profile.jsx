@@ -11,6 +11,10 @@ const Profile = () => {
 
   // console.log(user);
 
+  const handleDeletePost = (deletedPostId) => {
+    setPosts((prev) => prev.filter((post) => post._id !== deletedPostId));
+  };
+
   const userPost = async () => {
     try {
       const res = await fetch(
@@ -42,10 +46,17 @@ const Profile = () => {
     <div className="space-y-6 min-h-screen ">
       <UserProfile user={user} />
       <div>
-        <h3 className="text-lg font-semibold mb-2 text-white">Posts</h3>
+        <h3 className="text-lg font-semibold mb-2 text-blue-500">
+          My posts 📰
+        </h3>
         <div className="space-y-4">
           {posts.map((post) => (
-            <PostCard key={post._id} post={post} />
+            <PostCard
+              key={post._id}
+              post={post}
+              edit={true}
+              onDelete={handleDeletePost}
+            />
           ))}
         </div>
       </div>

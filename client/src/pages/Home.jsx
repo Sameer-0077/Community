@@ -32,18 +32,34 @@ const Home = () => {
     getAllPost();
   }, []);
 
-  const handleNewPost = (content) => {
-    const newPost = {
-      id: Date.now(),
-      content,
-      createdAt: new Date(),
-      author: { name: "You" },
-    };
-    setPosts([newPost, ...posts]);
+  const handleNewPost = async (content) => {
+    try {
+      console.log(content);
+
+      const res = await fetch("http://localhost:8000/api/post/create-post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(content),
+      });
+
+      console.log(res);
+
+      const newPost = await res.json();
+      console.log(newPost);
+
+      if (!res.ok) throw new Error(newPost.error);
+
+      setPosts([newPost, ...posts]);
+    } catch (error) {
+      console.log("Error:", error);
+    }
+
+    // setPosts([newPost, ...posts]);
   };
 
   return (
-    <div className="mt-16">
+    <div className=" ">
       <CreatePost onPostSubmit={handleNewPost} />
       <div className="space-y-4">
         {posts.map((post) => (

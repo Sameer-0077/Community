@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,13 +10,33 @@ const Register = () => {
     bio: "",
   });
 
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Register submitted:", formData);
+    // console.log("Register submitted:", formData);
+    try {
+      const res = await fetch("http://localhost:8000/api/auth/signup", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const user = await res.json();
+
+      if (!res.ok) throw new Error(user.error);
+
+      console.log("Signup successfull", user);
+      return navigate("/login");
+    } catch (error) {
+      console.log("ERROR:", error.message);
+    }
+
     // Call backend API here
   };
 
@@ -52,6 +73,13 @@ const Register = () => {
           onChange={handleChange}
           required
           minLength={6}
+          className="w-full p-3 mb-6 border rounded"
+        />
+        <textarea
+          type="text"
+          name="bio"
+          placeholder="Write about yourself"
+          onChange={handleChange}
           className="w-full p-3 mb-6 border rounded"
         />
 
