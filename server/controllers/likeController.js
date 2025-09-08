@@ -1,81 +1,105 @@
-const { findByIdAndDelete } = require("../models/comment");
 const Like = require("../models/like");
+const Post = require("../models/post");
+const Comment = require("../models/comment");
 
-const likePost = async (req, res) => {
+const togglePostLike = async (req, res) => {
   try {
-    const { postId } = req.body;
+    const { postId } = req.params;
     if (!postId) {
-      return res.status(400).json({ error: "Bad request!!" });
+      return res.status(400).json({ error: "Bad request" });
     }
 
-    await Like.create({
+    const existingLike = await Like.findOne({
       post: postId,
       likedBy: req.user._id,
     });
-    res.status(200).json({ message: "Post liked successfully" });
+
+    if (existingLike) {
+      await existingLike.deleteOne();
+      return res.json({ message: "Post unliked successfully", liked: false });
+    }
+
+    const newLike = await Like.create({
+      post: postId,
+      likedBy: req.user._id,
+    });
+
+    res
+      .status(201)
+      .json({ message: "Post liked successfully", liked: true, like: newLike });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Something went wrong", error });
   }
 };
 
-const likeComment = async (req, res) => {
+const toggleCommentLike = async (req, res) => {
   try {
-    const { commentId } = req.body;
+    const { commentId } = req.params;
 
-    if (!commentId) {
-      return res.status(400).json({ error: "Bad request!!" });
-    }
-
-    await Like.create({
+    const existingLike = await Like.findOne({
       comment: commentId,
       likedBy: req.user._id,
     });
-    res.status(200).json({ message: "Comment liked successfully" });
+
+    if (existingLike) {
+      await existingLike.deleteOne();
+      return res.json({
+        message: "Comment unliked successfully",
+        liked: false,
+      });
+    }
+
+    const newLike = await Like.create({
+      comment: commentId,
+      likedBy: req.user._id,
+    });
+
+    res.status(201).json({
+      message: "Comment liked successfully",
+      liked: true,
+      like: newLike,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Something went wrong", error });
   }
 };
 
-const removeLikeFromPost = async (req, res) => {
+const getAllLikesOnPost = async (req, res) => {
   try {
-    const { postId } = req.body;
-    if (!postId) {
-      return res.status(400).json({ error: "Bad request!!" });
-    }
+    const { postId } = req.params;
 
-    const like = await Like.find({ post: postId });
-    if (!like) {
-      return res.status(404).json({ error: "Like doesn't found" });
-    }
-    await Like.findByIdAndDelete(like);
-    res.status(200).json({ message: "Liked remove successfully" });
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    const likeCount = await Like.countDocuments({
+      post: postId,
+      comment: null,
+    });
+    res.status(200).json({ totalLike: likeCount });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Something went wrong", error });
   }
 };
-
-const removeLikeFromComment = async (req, res) => {
+const getAllLikesOnComment = async (req, res) => {
   try {
-    const { commentId } = req.body;
+    const { commentId } = req.params;
 
-    if (!commentId) {
-      return res.status(400).json({ error: "Bad request!!" });
-    }
+    const comment = await Comment.findById(commentId);
+    if (!comment) return res.status(404).json({ error: "Comment not found" });
 
-    const like = await Like.find({ comment: commentId });
-    if (!like) {
-      return res.status(404).json({ error: "Like doesn't found" });
-    }
-    await Like.findByIdAndDelete(like);
-    res.status(200).json({ message: "Liked remove successfully" });
+    const likeCount = await Like.countDocuments({
+      comment: commentId,
+      post: null,
+    });
+    res.status(200).json({ totalLike: likeCount });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Something went wrong", error });
   }
 };
 
 module.exports = {
-  likePost,
-  likeComment,
-  removeLikeFromPost,
-  removeLikeFromComment,
+  togglePostLike,
+  toggleCommentLike,
+  getAllLikesOnComment,
+  getAllLikesOnPost,
 };

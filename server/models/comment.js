@@ -12,7 +12,7 @@ const commentSchema = new mongoose.Schema(
       ref: "Post",
       required: true,
     },
-    owner: {
+    author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -27,6 +27,18 @@ const commentSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+commentSchema.pre("findOneAndDelete", async function (next) {
+  try {
+    const commentId = this.getQuery()["_id"];
+    await mongoose.model("Comment").deleteMany({ reply: commentId });
+    await Like.deleteMany({ comment: commentId });
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 const Comment = mongoose.model("Comment", commentSchema);
 
 module.exports = Comment;

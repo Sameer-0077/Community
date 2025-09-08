@@ -46,7 +46,45 @@ const deletePost = async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    await Post.findByIdAndDelete(postId);
+    // check authorization
+    if (post.author.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to delete this post" });
+    }
+
+    // find top-level comments for this post (just _id)
+    const comments = await Comment.find({ post: postId }).select("_id");
+    const commentIds = comments.map((comment) => comment._id);
+
+    // find direct replies to those comments (one-level only)
+    const replies = commentIds.length
+      ? await Comment.find({ reply: { $in: commentIds } }).select("_id")
+      : [];
+
+    const replyIds = replies.map((reply) => reply._id);
+
+    // 3) delete likes on: the post itself, and any comment/reply IDs
+    const commentAndReplies = commentIds.concat(replyIds);
+    await Like.deleteMany({
+      $or: [
+        { post: postId },
+        ...(commentAndReplies.length
+          ? [{ comment: { $in: commentAndReplies } }]
+          : []),
+      ],
+    });
+
+    // 4) delete replies first, then top-level comments
+    if (replyIds.length) {
+      await Comment.deleteMany({ _id: { $in: replyIds } });
+    }
+
+    if (commentIds.length) {
+      await Comment.deleteMany({ _id: { $in: commentIds } });
+    }
+    // finally delete the post
+    await Post.findOneAndDelete({ _id: postId });
     res.status(200).json({ message: "Post deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
