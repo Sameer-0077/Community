@@ -15,6 +15,11 @@ const newComment = async (req, res) => {
     const post = Post.findById(postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
+    if (parentCommentId !== null) {
+      const parentComment = await Comment.findById(parentCommentId);
+      if (!parentComment)
+        return res.status(404).json({ message: "Comment not found" });
+    }
     await Comment.create({
       content: content,
       post: postId,
