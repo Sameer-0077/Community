@@ -38,7 +38,7 @@ function App() {
   }, []);
 
   return (
-    <div className="bg-gray-800 min-h-screen">
+    <div className="">
       {/* <h2 className="p-2 bg-blue-500 text-3xl text-white">Community</h2> */}
 
       <Router>

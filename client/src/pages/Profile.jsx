@@ -3,6 +3,7 @@ import PostCard from "../components/PostCard";
 import useUserStore from "../store/userStore";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import CreatePost from "../components/CreatePost";
 
 const Profile = () => {
   const [posts, setPosts] = useState([]);
@@ -43,21 +44,35 @@ const Profile = () => {
 
   if (!user) return navigate("/login");
   return (
-    <div className="space-y-6 min-h-screen ">
-      <UserProfile user={user} />
-      <div>
-        <h3 className="text-lg font-semibold mb-2 text-blue-500">
-          My posts 📰
-        </h3>
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <PostCard
-              key={post._id}
-              post={post}
-              edit={true}
-              onDelete={handleDeletePost}
-            />
-          ))}
+    <div className="min-h-screen bg-gray-100 p-4 md:p-6">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-6">
+        {/* Left Column → User Profile */}
+        <div className="md:w-1/3">
+          <UserProfile user={user} />
+        </div>
+
+        {/* Right Column → Posts */}
+        <div className="md:w-2/3 flex flex-col gap-6">
+          {/* Section Header */}
+
+          {/* Optional: New Post Input */}
+
+          <CreatePost />
+          <h3 className="text-xl font-semibold mb-2 text-blue-500">
+            My Posts 📰
+          </h3>
+
+          {/* User Posts */}
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <PostCard
+                key={post._id}
+                post={post}
+                edit={true}
+                onDelete={handleDeletePost}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

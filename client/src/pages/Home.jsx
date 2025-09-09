@@ -2,6 +2,8 @@ import { useState } from "react";
 import CreatePost from "../components/CreatePost";
 import PostCard from "../components/PostCard";
 import { useEffect } from "react";
+import LeftSidebar from "../components/LeftSideBar";
+import RightSidebar from "../components/RightSide";
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -59,12 +61,30 @@ const Home = () => {
   };
 
   return (
-    <div className=" ">
-      <CreatePost onPostSubmit={handleNewPost} />
-      <div className="space-y-4">
-        {posts.map((post) => (
-          <PostCard key={post._id} post={post} />
-        ))}
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 p-4">
+        {/* Left Sidebar */}
+        <aside className="hidden md:block w-1/4">
+          <LeftSidebar />
+        </aside>
+
+        {/* Main Feed */}
+        <main className="w-full md:w-2/4 space-y-6">
+          {/* Create Post */}
+          <CreatePost onPostSubmit={handleNewPost} />
+
+          {/* Posts */}
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <PostCard key={post._id} post={post} />
+            ))}
+          </div>
+        </main>
+
+        {/* Right Sidebar */}
+        <aside className="hidden md:block w-1/4 space-y-6">
+          <RightSidebar />
+        </aside>
       </div>
     </div>
   );
