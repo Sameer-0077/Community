@@ -1,5 +1,5 @@
-const Like = require("../models/like");
 const Comment = require("../models/comment");
+const Like = require("../models/like");
 const Post = require("../models/post");
 
 const newComment = async (req, res) => {
@@ -39,6 +39,8 @@ const deleteComment = async (req, res) => {
     if (!commentId) return res.status(400).json({ error: "Bad request!!" });
 
     const comment = await Comment.findById(commentId);
+    console.log(comment);
+
     if (!comment) {
       return res.status(404).json({ error: "Comment not found" });
     }
@@ -62,7 +64,33 @@ const deleteComment = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "comment (and its replies) deleted successfully" });
+      .json({ message: "Comment (and its replies) deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const deleteReply = async (req, res) => {
+  try {
+    const { replyId } = req.params;
+
+    if (!replyId) {
+      return res.status(400).json({ error: "Bad request!!" });
+    }
+
+    const reply = await Comment.findById(replyId);
+
+    if (!reply) return res.status(404).json({ error: "Reply not found!" });
+
+    if (reply.author.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to delete this reply" });
+    }
+
+    await Comment.findOneAndDelete({ _id: replyId });
+
+    res.status(200).json({ message: "Reply deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -113,6 +141,7 @@ const getRepliesForComment = async (req, res) => {
 module.exports = {
   newComment,
   deleteComment,
+  deleteReply,
   getCommentsForPost,
   getRepliesForComment,
 };

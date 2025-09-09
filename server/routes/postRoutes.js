@@ -11,6 +11,7 @@ const {
   getCommentsForPost,
   deleteComment,
   getRepliesForComment,
+  deleteReply,
 } = require("../controllers/commentController");
 const {
   togglePostLike,
@@ -30,6 +31,7 @@ router.delete("/user/:postId", isAuthenticated, deletePost);
 router.post("/add-comment/:postId", isAuthenticated, newComment);
 router.get("/all-comment/:postId", getCommentsForPost);
 router.delete("/delete-comment/:commentId", isAuthenticated, deleteComment);
+router.delete("/delete-reply/:replyId", isAuthenticated, deleteReply);
 router.get("/all-replies/:commentId", getRepliesForComment);
 
 // Like routes

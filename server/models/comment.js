@@ -28,16 +28,16 @@ const commentSchema = new mongoose.Schema(
   }
 );
 
-commentSchema.pre("findOneAndDelete", async function (next) {
-  try {
-    const commentId = this.getQuery()["_id"];
-    await mongoose.model("Comment").deleteMany({ reply: commentId });
-    await Like.deleteMany({ comment: commentId });
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
+// commentSchema.pre("findOneAndDelete", async function (next) {
+//   try {
+//     const commentId = this.getQuery()["_id"];
+//     await mongoose.model("Comment").deleteMany({ reply: commentId });
+//     await Like.deleteMany({ comment: commentId });
+//     next();
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 const Comment = mongoose.model("Comment", commentSchema);
 
