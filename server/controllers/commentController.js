@@ -12,7 +12,7 @@ const newComment = async (req, res) => {
 
     if (!postId) return res.status(400).json({ error: "Bad request!!" });
 
-    const post = Post.findById(postId);
+    const post = await Post.findById(postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     if (parentCommentId !== null) {
@@ -44,7 +44,7 @@ const deleteComment = async (req, res) => {
     if (!commentId) return res.status(400).json({ error: "Bad request!!" });
 
     const comment = await Comment.findById(commentId);
-    console.log(comment);
+    // console.log(comment);
 
     if (!comment) {
       return res.status(404).json({ error: "Comment not found" });
@@ -101,6 +101,22 @@ const deleteReply = async (req, res) => {
   }
 };
 
+const getAllCommentsOnPost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    const commentCount = await Comment.countDocuments({
+      post: postId,
+    });
+    res.status(200).json({ totalComment: commentCount });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong", error });
+  }
+};
+
 const getCommentsForPost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -149,4 +165,5 @@ module.exports = {
   deleteReply,
   getCommentsForPost,
   getRepliesForComment,
+  getAllCommentsOnPost,
 };

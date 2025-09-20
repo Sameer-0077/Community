@@ -12,6 +12,7 @@ const {
   deleteComment,
   getRepliesForComment,
   deleteReply,
+  getAllCommentsOnPost,
 } = require("../controllers/commentController");
 const {
   togglePostLike,
@@ -29,7 +30,8 @@ router.delete("/user/:postId", isAuthenticated, deletePost);
 
 // Comments routes
 router.post("/add-comment/:postId", isAuthenticated, newComment);
-router.get("/all-comment/:postId", getCommentsForPost);
+router.get("/comment/:postId", getCommentsForPost);
+router.get("/all-comment/:postId", getAllCommentsOnPost);
 router.delete("/delete-comment/:commentId", isAuthenticated, deleteComment);
 router.delete("/delete-reply/:replyId", isAuthenticated, deleteReply);
 router.get("/all-replies/:commentId", getRepliesForComment);

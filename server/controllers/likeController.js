@@ -9,6 +9,9 @@ const togglePostLike = async (req, res) => {
       return res.status(400).json({ error: "Bad request" });
     }
 
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: "Post not found!" });
+
     const existingLike = await Like.findOne({
       post: postId,
       likedBy: req.user._id,
@@ -28,13 +31,22 @@ const togglePostLike = async (req, res) => {
       .status(201)
       .json({ message: "Post liked successfully", liked: true, like: newLike });
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong", error });
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
   }
 };
 
 const toggleCommentLike = async (req, res) => {
   try {
     const { commentId } = req.params;
+
+    if (!commentId) {
+      return res.status(400).json({ error: "Bad request" });
+    }
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) return res.status(404).json({ error: "Comment not found!" });
 
     const existingLike = await Like.findOne({
       comment: commentId,

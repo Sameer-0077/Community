@@ -1,5 +1,6 @@
 const Post = require("../models/post");
-
+const Comment = require("../models/comment");
+const Like = require("../models/like");
 const createPost = async (req, res) => {
   try {
     const { content } = req.body;
@@ -40,7 +41,8 @@ const getUserPosts = async (req, res) => {
 
 const deletePost = async (req, res) => {
   try {
-    const postId = req.params.postId;
+    const { postId } = req.params;
+    if (!postId) return res.status(400).json({ error: "Bad request!" });
     const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
