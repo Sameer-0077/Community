@@ -1,28 +1,80 @@
 import { useState } from "react";
-import { MessageCircle, Heart } from "lucide-react";
+import { MessageCircle, Heart, SendHorizonal, Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import ShowComments from "./ShowComments";
+import ToastMsg from "./ToastMsg";
+import useUserStore from "../store/userStore";
 
 const PostCard = ({ post, edit = false, onDelete }) => {
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(12); // starting likes
+  const [like, setLike] = useState(false);
+  const [likes, setLikes] = useState(); // total likes
   const [commented, setCommented] = useState(false);
-  const [comments, setComments] = useState(3); // starting comments
+  const [comments, setComments] = useState(); // total comments
+  const [showAllComment, setShowAllComment] = useState();
+  const [content, setCommentContent] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showMsg, setShowMsg] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const user = useUserStore((state) => state.user);
+  const toggleLike = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/post/like-post/${post._id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
 
-  const toggleLike = () => {
-    if (liked) {
-      setLikes(likes - 1);
-    } else {
-      setLikes(likes + 1);
+      const result = await res.json();
+      if (!res.ok) {
+        setToastMessage("Please login to like post");
+        setShowMsg(true);
+        return console.log("Error:", result.error);
+      }
+      if (result.liked) {
+        setLikes(likes + 1);
+      } else {
+        setLikes(likes - 1);
+      }
+
+      setLike(result.liked);
+    } catch (error) {
+      console.log("Error:", error.message);
     }
-    setLiked(!liked);
   };
 
-  const toggleComment = () => {
-    if (commented) {
-      setComments(comments - 1);
-    } else {
-      setComments(comments + 1);
+  const toggleComment = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/post/comment/${post._id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const allComment = await res.json();
+
+      // console.log(allComment);
+
+      if (!res.ok) {
+        throw new error(allComment.error);
+      } else {
+        // allComment.map((comm) =>
+        //   console.log(`Comment: ${comm.content} Author: ${comm.author.name}`)
+        // );
+        setShowAllComment(allComment);
+      }
+      if (!user) {
+        setToastMessage("Please login to view comment!");
+        setShowMsg(true);
+        return;
+      }
+      setCommented(!commented);
+    } catch (error) {
+      console.log("Error:", error.message);
     }
-    setCommented(!commented);
   };
 
   const handleDelete = async () => {
@@ -46,8 +98,117 @@ const PostCard = ({ post, edit = false, onDelete }) => {
     }
   };
 
+  const getComments = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/post/all-comment/${post._id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const commentCount = await res.json();
+
+      if (!res.ok) {
+        throw new error(commentCount.error);
+      } else {
+        setComments(commentCount.totalComment);
+      }
+    } catch (error) {
+      console.log("Error:", error.message);
+    }
+  };
+
+  const getLikes = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/post/all-likes-post/${post._id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const likes = await res.json();
+
+      const isLike = await fetch(
+        `http://localhost:8000/api/post/like-post/${post._id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) {
+        throw new error(likes.error);
+      } else {
+        setLikes(likes.totalLike);
+        // console.log("Like:", likes.totalLike);
+        // console.log("SetLike:", likes);
+      }
+
+      const result = await isLike.json();
+      if (!isLike.ok) return console.log("Error:", result.error);
+      setLike(result.liked);
+    } catch (error) {
+      console.log("Error:", error.message);
+    }
+  };
+
+  // const parentCommentId = null;
+
+  const addComment = async () => {
+    // console.log(content);
+    try {
+      setLoading(true);
+      if (content.trim()) {
+        const data = { content: content, parentCommentId: null };
+        setCommentContent("");
+        const res = await fetch(
+          `http://localhost:8000/api/post/add-comment/${post._id}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(data),
+          }
+        );
+
+        const newComment = await res.json();
+        // console.log(newComment);
+
+        if (!res.ok) {
+          throw new error(newComment.error);
+        } else {
+          console.log(newComment.message);
+          getComments();
+        }
+      }
+      setTimeout(() => {
+        setCommented(false);
+        setLoading(false);
+      }, 1000);
+    } catch (error) {
+      setToastMessage("Please login to comment!");
+      setShowMsg(true);
+      console.log("Error:", error.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getLikes();
+    getComments();
+  }, []);
+
   return (
     <div className="border bg-white rounded p-4 shadow-sm mb-4">
+      <ToastMsg
+        message={toastMessage}
+        isVisible={showMsg}
+        onClose={() => setShowMsg(false)}
+      />
       <div className="text-md text-gray-700 text-left mb-4">
         <span className="font-bold">👤 {post.author.name}</span>
         <br />
@@ -81,7 +242,7 @@ const PostCard = ({ post, edit = false, onDelete }) => {
           onClick={toggleLike}
           className={`flex items-center space-x-2 px-4 py-2 rounded-2xl font-medium shadow-sm transition
           ${
-            liked
+            like
               ? "bg-pink-100 text-pink-600"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
@@ -89,10 +250,10 @@ const PostCard = ({ post, edit = false, onDelete }) => {
           <span className="text-sm font-semibold">{likes}</span>
           <Heart
             size={20}
-            fill={liked ? "rgb(244 114 182)" : "none"} // tailwind pink-400
-            className={liked ? "text-pink-600" : "text-gray-600"}
+            fill={like ? "rgb(244 114 182)" : "none"} // tailwind pink-400
+            className={like ? "text-pink-600" : "text-gray-600"}
           />
-          <span>{liked ? " Liked" : " Like"}</span>
+          <span>{like ? " Liked" : " Like"}</span>
         </button>
       </div>
 
@@ -107,6 +268,36 @@ const PostCard = ({ post, edit = false, onDelete }) => {
           >
             Delete
           </button>
+        </div>
+      )}
+      {commented && (
+        <div className="mt-2 p-2 border bg-white rounded shadow-lg ">
+          <div className="flex justify- items-center gap-2 p-2">
+            <input
+              type="text"
+              value={content}
+              onChange={(e) => setCommentContent(e.target.value)}
+              placeholder="Comment your thought :)"
+              className="flex-1 border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <button
+              className="text-blue-500 hover:text-blue-600"
+              onClick={addComment}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Posting...
+                </>
+              ) : (
+                <SendHorizonal size={28} />
+              )}
+            </button>
+          </div>
+
+          {showAllComment.map((comm) => (
+            <ShowComments key={comm._id} comm={comm} />
+          ))}
         </div>
       )}
     </div>

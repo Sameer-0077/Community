@@ -25,8 +25,8 @@ const CreatePost = ({ onPostSubmit }) => {
     <form onSubmit={handleSubmit} className="mb-6">
       <div className="bg-white p-4 rounded-2xl shadow-md flex items-center gap-4 hover:shadow-lg transition-shadow duration-200">
         <img
-          src={user.avatar || "https://i.pravatar.cc/150?img=3"}
-          alt={user.name}
+          src={"https://i.pravatar.cc/150?img=3"}
+          alt={user ? user.name : "👤Gest"}
           className="w-10 h-10 rounded-full object-cover"
         />
         <input
