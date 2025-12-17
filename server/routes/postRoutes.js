@@ -20,10 +20,16 @@ const {
   getAllLikesOnPost,
   getAllLikesOnComment,
 } = require("../controllers/likeController");
+const upload = require("../middlewares/upload");
 const router = express.Router();
 
 // Post routes
-router.post("/create-post", isAuthenticated, createPost);
+router.post(
+  "/create-post",
+  isAuthenticated,
+  upload.array("media", 5),
+  createPost
+);
 router.get("/all-post", getAllPosts);
 router.get("/user/:userId", isAuthenticated, getUserPosts);
 router.delete("/user/:postId", isAuthenticated, deletePost);
