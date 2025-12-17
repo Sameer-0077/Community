@@ -1,16 +1,74 @@
 const Post = require("../models/post");
 const Comment = require("../models/comment");
 const Like = require("../models/like");
+const cloudinary = require("../utils/cloudinary");
+const cloudinaryUpload = require("../utils/cloudinaryUpload");
+
 const createPost = async (req, res) => {
   try {
-    const { content } = req.body;
+    const { text } = req.body;
+    const files = req.files || [];
 
-    if (!content) {
-      return res.status(401).json({ error: "Content is required" });
+    // Post must have text or media
+    if (!text && files.length === 0) {
+      return res.status(400).json({ error: "Post cannot be empty" });
     }
 
+    // count images and video
+    let imageCount = 0;
+    let videoCount = 0;
+
+    for (const file of files) {
+      if (file.mimetype.startsWith("image/")) {
+        imageCount++;
+      } else if (file.mimetype.startsWith("video/")) {
+        videoCount++;
+      }
+    }
+
+    // Limit the number of images and video
+    if (imageCount > 4) {
+      return res
+        .status(400)
+        .json({ error: "You can upload maximum of 4 image per post" });
+    }
+    if (videoCount > 1) {
+      return res
+        .status(400)
+        .json({ error: "You can upload only one video per post" });
+    }
+
+    // Max media should be not more than 5
+    if (imageCount + videoCount > 5) {
+      return res
+        .status(400)
+        .json({ error: "You can upload a maximum of 5 media files per post" });
+    }
+
+    // Upload media on Cloudinary
+    let media = [];
+
+    for (const file of files) {
+      const resourceType = file.mimetype.startsWith("video/")
+        ? "video"
+        : "image";
+
+      const result = await cloudinaryUpload(
+        file,
+        `community-posts/user/${req.user.id}/${resourceType}s`
+      );
+
+      media.push({
+        url: result.secure_url,
+        type: resourceType,
+        publicId: result.public_id,
+      });
+    }
+
+    // Creating post
     const post = await Post.create({
-      content,
+      text,
+      media,
       author: req.user._id,
     });
 
@@ -53,6 +111,13 @@ const deletePost = async (req, res) => {
       return res
         .status(403)
         .json({ error: "You are not authorized to delete this post" });
+    }
+
+    // delete media from cloudinary
+    for (const item of post.media) {
+      await cloudinary.uploader.destroy(item.publicId, {
+        resource_type: item.resourceType,
+      });
     }
 
     // find top-level comments for this post (just _id)
