@@ -2,11 +2,23 @@ const mongoose = require("mongoose");
 
 const postSchema = mongoose.Schema(
   {
-    content: {
+    text: {
       type: String,
-      required: true,
       trim: true,
     },
+    media: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+        type: {
+          type: String,
+          enum: ["image", "video"],
+          required: true,
+        },
+      },
+    ],
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
