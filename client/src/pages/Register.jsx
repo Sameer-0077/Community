@@ -20,7 +20,7 @@ const Register = () => {
     e.preventDefault();
     // console.log("Register submitted:", formData);
     try {
-      const res = await fetch("http://localhost:8000/api/auth/signup", {
+      const res = await fetch(`${import.meta.env.VITE_API_SIGNUP_URI}`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
