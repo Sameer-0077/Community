@@ -5,7 +5,7 @@ const UserProfile = ({ user }) => {
   const setUser = useUserStore((state) => state.setUser);
   const handleClick = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/auth/logout", {
+      const res = await fetch(`${import.meta.env.VITE_API_LOGOUT_URI}`, {
         method: "GET",
         credentials: "include",
       });
