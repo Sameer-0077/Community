@@ -18,13 +18,10 @@ const Profile = () => {
 
   const userPost = async () => {
     try {
-      const res = await fetch(
-        `http://localhost:8000/api/post/user/${user._id}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`${VITE_API_GET_USER_POST_URI}${user._id}`, {
+        method: "GET",
+        credentials: "include",
+      });
 
       const allPost = await res.json();
 
