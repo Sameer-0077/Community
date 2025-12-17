@@ -16,7 +16,7 @@ const Login = () => {
     // console.log("Login submitted:", formData);
     // Call backend API here
     try {
-      const res = await fetch("http://localhost:8000/api/auth/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_LOGIN_URI}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
