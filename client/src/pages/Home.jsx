@@ -10,7 +10,7 @@ const Home = () => {
 
   const getAllPost = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/post/all-post", {
+      const res = await fetch(`${import.meta.env.VITE_API_GET_ALL_POST_URI}`, {
         method: "GET",
         credentials: "include",
       });
@@ -34,15 +34,12 @@ const Home = () => {
     getAllPost();
   }, []);
 
-  const handleNewPost = async (content) => {
+  const handleNewPost = async (formData) => {
     try {
-      console.log(content);
-
-      const res = await fetch("http://localhost:8000/api/post/create-post", {
+      const res = await fetch(`${import.meta.env.VITE_API_CREATE_POST_URI}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(content),
+        body: formData,
       });
 
       console.log(res);
