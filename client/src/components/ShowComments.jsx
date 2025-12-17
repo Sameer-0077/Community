@@ -10,7 +10,7 @@ function ShowComments({ comm }) {
   const getLike = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/post/all-likes-comment/${comm._id}`,
+        `${import.meta.env.VITE_API_GET_LIKE_ON_COMMENT_URI}/${comm._id}`,
         {
           method: "GET",
           credentials: "include",
@@ -32,7 +32,7 @@ function ShowComments({ comm }) {
   const isCommentLike = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/post/like-comment/${comm._id}`,
+        `${import.meta.env.VITE_API_TOGGLE_COMMENT_LIKE_URI}/${comm._id}`,
         {
           method: "GET",
           credentials: "include",
