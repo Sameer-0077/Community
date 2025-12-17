@@ -19,7 +19,7 @@ const PostCard = ({ post, edit = false, onDelete }) => {
   const toggleLike = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/post/like-post/${post._id}`,
+        `${import.meta.env.VITE_API_TOGGLE_POST_LIKE_URI}/${post._id}`,
         {
           method: "GET",
           credentials: "include",
@@ -47,7 +47,7 @@ const PostCard = ({ post, edit = false, onDelete }) => {
   const toggleComment = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/post/comment/${post._id}`,
+        `${import.meta.env.VITE_API_GET_COMMENTS_FOR_POST_URI}/${post._id}`,
         {
           method: "GET",
           credentials: "include",
@@ -80,7 +80,7 @@ const PostCard = ({ post, edit = false, onDelete }) => {
   const handleDelete = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/post/user/${post._id}`,
+        `${import.meta.env.VITE_API_DELETE_POST_URI}/${post._id}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -101,7 +101,7 @@ const PostCard = ({ post, edit = false, onDelete }) => {
   const getComments = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/post/all-comment/${post._id}`,
+        `${import.meta.env.VITE_API_GET_ALL_COMMENT_URI}/${post._id}`,
         {
           method: "GET",
           credentials: "include",
@@ -123,7 +123,7 @@ const PostCard = ({ post, edit = false, onDelete }) => {
   const getLikes = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/post/all-likes-post/${post._id}`,
+        `${import.meta.env.VITE_API_GET_LIKE_ON_POST_URI}/${post._id}`,
         {
           method: "GET",
           credentials: "include",
@@ -133,7 +133,7 @@ const PostCard = ({ post, edit = false, onDelete }) => {
       const likes = await res.json();
 
       const isLike = await fetch(
-        `http://localhost:8000/api/post/like-post/${post._id}`,
+        `${import.meta.env.VITE_API_TOGGLE_POST_LIKE_URI}/${post._id}`,
         {
           method: "GET",
           credentials: "include",
@@ -166,7 +166,7 @@ const PostCard = ({ post, edit = false, onDelete }) => {
         const data = { content: content, parentCommentId: null };
         setCommentContent("");
         const res = await fetch(
-          `http://localhost:8000/api/post/add-comment/${post._id}`,
+          `${import.meta.env.VITE_API_ADD_NEW_COMMENT_URI}/${post._id}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -213,7 +213,34 @@ const PostCard = ({ post, edit = false, onDelete }) => {
         <span className="font-bold">👤 {post.author.name}</span>
         <br />
       </div>
-      <p className="text-gray-800 mb-2 px-6">{post.content}</p>
+      {/* Text Content */}
+      {post.text && (
+        <p className="text-gray-800 px-2 whitespace-pre-wrap">{post.text}</p>
+      )}
+
+      {/* Media Content */}
+      {post.media && post.media.length > 0 && (
+        <div className="grid gap-2 mt-2">
+          {post.media.map((item, index) => (
+            <div key={index} className="rounded-xl overflow-hidden">
+              {item.type === "image" ? (
+                <img
+                  src={item.url}
+                  alt="Post media"
+                  className="w-full max-h-[450px] object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <video
+                  src={item.url}
+                  controls
+                  className="w-full max-h-[450px] rounded-xl"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="text-sm text-gray-700 text-left mb-2">
         {new Date(post.createdAt).toLocaleString()}
       </div>
