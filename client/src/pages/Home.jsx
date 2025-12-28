@@ -107,10 +107,6 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    console.log("hasMore:", hasMore);
-    console.log("loading:", loading);
-    console.log("error:", error);
-
     if (!hasMore || loading) return;
 
     const observer = new IntersectionObserver(
