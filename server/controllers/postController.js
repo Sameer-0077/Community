@@ -3,6 +3,7 @@ const Comment = require("../models/comment");
 const Like = require("../models/like");
 const cloudinary = require("../utils/cloudinary");
 const cloudinaryUpload = require("../utils/cloudinaryUpload");
+const { mongoose } = require("mongoose");
 
 const createPost = async (req, res) => {
   try {
@@ -58,8 +59,17 @@ const createPost = async (req, res) => {
         `community-posts/user/${req.user.id}/${resourceType}s`
       );
 
+      const optimizedUrl = result.secure_url.replace(
+        "/upload/",
+        "/upload/w_800,q_auto,f_auto/"
+      );
+
+      console.log("Url is : ", result.secure_url);
+      console.log("Optimized url is : ", optimizedUrl);
+      console.log("Public Id is: ", result.public_id);
+
       media.push({
-        url: result.secure_url,
+        url: optimizedUrl,
         type: resourceType,
         publicId: result.public_id,
       });
@@ -78,23 +88,203 @@ const createPost = async (req, res) => {
   }
 };
 
-//Get all posts for feed
-const getAllPosts = async (req, res) => {
-  const posts = await Post.find()
-    .populate("author", "name")
-    .sort({ createdAt: -1 });
+//Get all post
 
-  res.status(200).json(posts);
+const getAllPost = async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .populate("author", "name")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+//Get posts for feed
+const getFeedPosts = async (req, res) => {
+  try {
+    // const userId = req.params.userId;
+    const { cursor, limit = 10 } = req.query;
+
+    let parsedCursor = null;
+    if (cursor) {
+      parsedCursor = JSON.parse(cursor);
+    }
+
+    const matchStage = {};
+    if (parsedCursor?.createdAt && parsedCursor?._id) {
+      matchStage.$or = [
+        { createdAt: { $lt: new Date(parsedCursor.createdAt) } },
+        {
+          createdAt: new Date(parsedCursor.createdAt),
+          _id: { $lt: new mongoose.Types.ObjectId(parsedCursor._id) },
+        },
+      ];
+    }
+    const posts = await Post.aggregate([
+      { $match: matchStage },
+      { $sort: { createdAt: -1, id: -1 } },
+      { $limit: Number(limit) + 1 },
+
+      //Author
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author",
+          pipeline: [{ $project: { name: 1 } }],
+        },
+      },
+      { $unwind: "$author" },
+
+      //Likes
+      {
+        $lookup: {
+          from: "likes",
+          let: { postId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$post", "$$postId"] } } },
+            { $project: { likedBy: 1 } },
+          ],
+          as: "likes",
+        },
+      },
+
+      //Comment
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_id",
+          foreignField: "post",
+          as: "comments",
+        },
+      },
+
+      //Computed fileds
+      {
+        $addFields: {
+          likeCount: { $size: "$likes" },
+          commentCount: { $size: "$comments" },
+          // isLiked: userId
+          //   ? {
+          //       $in: [new mongoose.Types.ObjectId(userId), "$likes.likedBy"],
+          //     }
+          //   : false,
+        },
+      },
+
+      //Cleanup the response
+      {
+        $project: {
+          likes: 0,
+          comments: 0,
+        },
+      },
+    ]);
+
+    let nextCursor = null;
+
+    if (posts.length > limit) {
+      const last = posts[limit - 1];
+      nextCursor = {
+        createdAt: last.createdAt,
+        _id: last._id,
+      };
+      posts.pop();
+    }
+
+    res.status(200).json({
+      posts,
+      nextCursor,
+    });
+  } catch (error) {
+    // console.error(error);
+    res
+      .status(500)
+      .json({ error: "Failed to load feed", errorMessage: error.message });
+  }
 };
 
 // Get posts by a specific user
 const getUserPosts = async (req, res) => {
-  const userId = req.params.userId;
-  const posts = await Post.find({ author: userId })
-    .populate("author", "name")
-    .sort({ createdAt: -1 });
+  try {
+    const userId = req.params.userId;
+    const posts = await Post.aggregate([
+      {
+        $match: {
+          author: new mongoose.Types.ObjectId(userId),
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "userPost",
+          pipeline: [{ $project: { name: 1 } }],
+        },
+      },
+      { $unwind: "$userPost" },
 
-  res.status(200).json(posts);
+      {
+        $lookup: {
+          from: "likes",
+          let: { postId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$post", "$$postId"] } } },
+            { $project: { likedBy: 1 } },
+          ],
+          as: "likes",
+        },
+      },
+
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_id",
+          foreignField: "post",
+          as: "comments",
+        },
+      },
+
+      {
+        $addFields: {
+          likeCount: { $size: "$likes" },
+          commentCount: { $size: "$comments" },
+          isLiked: userId
+            ? {
+                $in: [
+                  new mongoose.Types.ObjectId(req.user._id),
+                  "$likes.likedBy",
+                ],
+              }
+            : false,
+        },
+      },
+
+      {
+        $project: {
+          likes: 0,
+          comments: 0,
+        },
+      },
+    ]);
+
+    res.status(200).json(posts);
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to load user posts",
+      errorMessage: error.message,
+    });
+  }
 };
 
 const deletePost = async (req, res) => {
@@ -115,9 +305,13 @@ const deletePost = async (req, res) => {
 
     // delete media from cloudinary
     for (const item of post.media) {
-      await cloudinary.uploader.destroy(item.publicId, {
-        resource_type: item.resourceType,
-      });
+      try {
+        await cloudinary.uploader.destroy(item.publicId, {
+          resource_type: item.resourceType,
+        });
+      } catch (error) {
+        throw error;
+      }
     }
 
     // find top-level comments for this post (just _id)
@@ -160,7 +354,8 @@ const deletePost = async (req, res) => {
 
 module.exports = {
   createPost,
-  getAllPosts,
+  getFeedPosts,
   getUserPosts,
   deletePost,
+  getAllPost,
 };
