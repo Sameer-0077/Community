@@ -5,6 +5,8 @@ const {
   getAllPosts,
   getUserPosts,
   deletePost,
+  getFeedPosts,
+  getAllPost,
 } = require("../controllers/postController");
 const {
   newComment,
@@ -30,7 +32,8 @@ router.post(
   upload.array("media", 5),
   createPost
 );
-router.get("/all-post", getAllPosts);
+router.get("/feed", getFeedPosts);
+router.get("/all-post", getAllPost);
 router.get("/user/:userId", isAuthenticated, getUserPosts);
 router.delete("/user/:postId", isAuthenticated, deletePost);
 
