@@ -5,9 +5,12 @@ const generateToken = (res, userId) => {
     expiresIn: "2d",
   });
 
+  const isSecure = process.env.NODE_ENV === "production";
+
   res.cookie("token", token, {
     httpOnly: true,
-    secure: false,
+    secure: isSecure,
+    sameSite: isSecure ? "none" : "lax",
     maxAge: 2 * 24 * 60 * 60 * 1000,
   });
 };
