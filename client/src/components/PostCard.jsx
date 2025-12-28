@@ -7,15 +7,20 @@ import useUserStore from "../store/userStore";
 
 const PostCard = ({ post, edit = false, onDelete }) => {
   const [like, setLike] = useState(false);
-  const [likes, setLikes] = useState(); // total likes
+  const [likes, setLikes] = useState(post.likeCount); // total likes
   const [commented, setCommented] = useState(false);
-  const [comments, setComments] = useState(); // total comments
+  const [comments, setComments] = useState(post.commentCount); // total comments
   const [showAllComment, setShowAllComment] = useState();
   const [content, setCommentContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [showMsg, setShowMsg] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const user = useUserStore((state) => state.user);
+
+  for (const item of post.media) {
+    console.log("Public Id of this post is : ", item.publicId);
+  }
+
   const toggleLike = async () => {
     try {
       const res = await fetch(
@@ -122,16 +127,6 @@ const PostCard = ({ post, edit = false, onDelete }) => {
 
   const getLikes = async () => {
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_GET_LIKE_ON_POST_URI}/${post._id}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
-      const likes = await res.json();
-
       const isLike = await fetch(
         `${import.meta.env.VITE_API_TOGGLE_POST_LIKE_URI}/${post._id}`,
         {
@@ -139,14 +134,6 @@ const PostCard = ({ post, edit = false, onDelete }) => {
           credentials: "include",
         }
       );
-
-      if (!res.ok) {
-        throw new error(likes.error);
-      } else {
-        setLikes(likes.totalLike);
-        // console.log("Like:", likes.totalLike);
-        // console.log("SetLike:", likes);
-      }
 
       const result = await isLike.json();
       if (!isLike.ok) return console.log("Error:", result.error);
@@ -198,8 +185,12 @@ const PostCard = ({ post, edit = false, onDelete }) => {
   };
 
   useEffect(() => {
-    getLikes();
-    getComments();
+    if (edit) {
+      setLike(post.isLiked);
+    } else {
+      getLikes();
+    }
+    // getComments();
   }, []);
 
   return (
