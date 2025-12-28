@@ -39,6 +39,8 @@ const commentSchema = new mongoose.Schema(
 //   }
 // });
 
+commentSchema.index({ post: 1 });
+
 const Comment = mongoose.model("Comment", commentSchema);
 
 module.exports = Comment;
