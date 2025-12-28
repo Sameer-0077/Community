@@ -17,9 +17,9 @@ const PostCard = ({ post, edit = false, onDelete }) => {
   const [toastMessage, setToastMessage] = useState("");
   const user = useUserStore((state) => state.user);
 
-  for (const item of post.media) {
-    console.log("Public Id of this post is : ", item.publicId);
-  }
+  // for (const item of post.media) {
+  //   console.log("Public Id of this post is : ", item.publicId);
+  // }
 
   const toggleLike = async () => {
     try {

@@ -14,11 +14,15 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const user = useUserStore((state) => state.user);
+  const [error, setError] = useState(null);
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 2;
+
   const isFirstLoad = useRef(true);
   const observerRef = useRef(null);
 
   const getFeedPosts = async () => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore || error) return;
     try {
       setLoading(true);
 
@@ -52,8 +56,15 @@ const Home = () => {
       // console.log("nextCursor:", data.nextCursor);
 
       setHasMore(Boolean(data.nextCursor));
+      retryCountRef.current = 0; // ✅ reset on success
+      setError(null);
     } catch (error) {
+      retryCountRef.current += 1;
       console.error("Error loading feed:", error.message);
+      if (retryCountRef.current >= MAX_RETRIES) {
+        setError("Unable to load feed. Please try again later");
+        setHasMore(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -80,6 +91,12 @@ const Home = () => {
   //   }
   // };
 
+  // const onRetry = () => {
+  //   setHasMore(true);
+  //   setLoading(false);
+  //   setError(null);
+  // };
+
   useEffect(() => {
     // getCurrentUser();
     // getAllPost();
@@ -90,6 +107,10 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    console.log("hasMore:", hasMore);
+    console.log("loading:", loading);
+    console.log("error:", error);
+
     if (!hasMore || loading) return;
 
     const observer = new IntersectionObserver(
@@ -174,6 +195,13 @@ const Home = () => {
               <p className="text-center text-gray-500 py-4">
                 🎉 You’ve reached the end
               </p>
+            )}
+            {error && (
+              <div className="text-center py-6">
+                <p className="text-red-500 text-lg font-semibold mb-2">
+                  {error} or refresh the page
+                </p>
+              </div>
             )}
           </div>
         </main>
