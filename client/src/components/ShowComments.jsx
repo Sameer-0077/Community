@@ -6,6 +6,7 @@ function ShowComments({ comm }) {
   const [countLike, setCountLike] = useState();
   const [isLike, setIsLiked] = useState();
   const user = useUserStore((state) => state.user);
+  const [reply, setReply] = useState();
 
   const getLike = async () => {
     try {
@@ -84,6 +85,9 @@ function ShowComments({ comm }) {
           )} */}
         </span>
       </p>
+      {/* {reply && (
+        <p className="text-left pl-2 text-xs cursor-pointer">4 ↩reply</p>
+      )} */}
     </div>
   );
 }
