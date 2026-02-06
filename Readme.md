@@ -62,12 +62,6 @@ A full‑stack community application where users can create posts, like and comm
 - Cloudinary image resizing and compression
 - Reduced payload size using $project
 
-### 🖼 Media Handling
-
-- Images are uploaded to Cloudinary
-- Auto‑optimized using width, quality, and format
-- public_id stored to allow safe deletion
-
 ---
 
 ## 📦 API Overview
@@ -101,6 +95,14 @@ POST /api/post/:postId/like
 ```
 POST /api/comment/:postId
 ```
+
+---
+
+## 🖼 Media Handling
+
+- Images are uploaded to Cloudinary
+- Auto‑optimized using width, quality, and format
+- public_id stored to allow safe deletion
 
 ---
 
